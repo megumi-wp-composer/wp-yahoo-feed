@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/megumi-wp-composer/yahoo-feed.svg?branch=master)](https://travis-ci.org/megumi-wp-composer/yahoo-feed) [![Latest Stable Version](https://poser.pugx.org/megumi/yahoo-feed/v/stable.svg)](https://packagist.org/packages/megumi/yahoo-feed) [![Total Downloads](https://poser.pugx.org/megumi/yahoo-feed/downloads.svg)](https://packagist.org/packages/megumi/yahoo-feed) [![Latest Unstable Version](https://poser.pugx.org/megumi/yahoo-feed/v/unstable.svg)](https://packagist.org/packages/megumi/yahoo-feed) [![License](https://poser.pugx.org/megumi/yahoo-feed/license.svg)](https://packagist.org/packages/megumi/yahoo-feed)
 
-Helper class for the `wp_insert_post()`
+Helper class for the custom feed of Yahoo Japan.
 
 ## Installation
 
