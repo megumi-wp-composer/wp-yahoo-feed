@@ -116,4 +116,12 @@ class YahooFeed_Test extends WP_UnitTestCase
 			"The `caption` already been at `<img />`."
 		);
 	}
+
+	/**
+	 * @test
+	 */
+	public function do_feed()
+	{
+
+	}
 }

@@ -44,7 +44,7 @@ class YahooFeed
 	public function do_feed()
 	{
 		/**
-		 * Filters feed template
+		 * Filters the feed template.
 		 *
 		 * @since initial-release
 		 * @param string Path to the feed template.
@@ -89,7 +89,7 @@ class YahooFeed
 		}
 
 		/**
-		 * Filters width of item's title
+		 * Filters the width of item's title.
 		 *
 		 * @since initial-release
 		 * @param string Path to the feed template.
@@ -104,7 +104,7 @@ class YahooFeed
 		}
 
 		/**
-		 * Filters category of the item
+		 * Filters the category of the item.
 		 *
 		 * @since initial-release
 		 * @param string $the_list <category> node of the item
@@ -122,7 +122,7 @@ class YahooFeed
 			$post_thumbnail_id = get_post_thumbnail_id( get_the_ID() );
 
 			/**
-			 * Filters the image size of post-thumbnail
+			 * Filters the image size of post-thumbnail.
 			 *
 			 * @since initial-release
 			 * @param string 'full' or 'large' or ...
@@ -131,7 +131,7 @@ class YahooFeed
 			$enclosure = $attachment_image_src[0];
 		} else {
 			/**
-			 * Filters the default post-thumbnail
+			 * Filters the default post-thumbnail.
 			 *
 			 * @since initial-release
 			 * @param string URL to the default post-thumbnail
@@ -150,6 +150,12 @@ class YahooFeed
 
 		$content = apply_filters( 'the_content', get_the_content() );
 
+		/**
+		 * Filters the descrption of the item.
+		 *
+		 * @since initial-release
+		 * @param string $content The content
+		 */
 		return apply_filters( 'yahoo_feed_item_excerpt_' . $this->feed_name, $content );
 	}
 
@@ -193,6 +199,12 @@ class YahooFeed
 
 	public function yahoo_feed_item_excerpt( $content )
 	{
+		/**
+		 * Filters the allowed html
+		 *
+		 * @since initial-release
+		 * @param array Allowed htmls and attributes
+		 */
 		$allowed_html = apply_filters( 'yahoo_feed_item_allowed_html_' . $this->feed_name, array(
 			'h2' => array(),
 			'p' => array(),
