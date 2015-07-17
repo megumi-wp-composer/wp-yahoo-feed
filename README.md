@@ -1,6 +1,6 @@
-# megumi/yahoo-feed
+# megumi/wp-yahoo-feed
 
-[![Build Status](https://travis-ci.org/megumi-wp-composer/yahoo-feed.svg?branch=master)](https://travis-ci.org/megumi-wp-composer/yahoo-feed) [![Latest Stable Version](https://poser.pugx.org/megumi/yahoo-feed/v/stable.svg)](https://packagist.org/packages/megumi/yahoo-feed) [![Total Downloads](https://poser.pugx.org/megumi/yahoo-feed/downloads.svg)](https://packagist.org/packages/megumi/yahoo-feed) [![Latest Unstable Version](https://poser.pugx.org/megumi/yahoo-feed/v/unstable.svg)](https://packagist.org/packages/megumi/yahoo-feed) [![License](https://poser.pugx.org/megumi/yahoo-feed/license.svg)](https://packagist.org/packages/megumi/yahoo-feed)
+[![Build Status](https://travis-ci.org/megumi-wp-composer/wp-yahoo-feed.svg?branch=master)](https://travis-ci.org/megumi-wp-composer/wp-yahoo-feed) [![Latest Stable Version](https://poser.pugx.org/megumi/wp-yahoo-feed/v/stable.svg)](https://packagist.org/packages/megumi/wp-yahoo-feed) [![Total Downloads](https://poser.pugx.org/megumi/wp-yahoo-feed/downloads.svg)](https://packagist.org/packages/megumi/wp-yahoo-feed) [![Latest Unstable Version](https://poser.pugx.org/megumi/wp-yahoo-feed/v/unstable.svg)](https://packagist.org/packages/megumi/wp-yahoo-feed) [![License](https://poser.pugx.org/megumi/wp-yahoo-feed/license.svg)](https://packagist.org/packages/megumi/wp-yahoo-feed)
 
 Helper class Generates the custom feed for Yahoo Japan for WordPress plugin.
 
@@ -18,7 +18,7 @@ Create a composer.json in your plugin root or mu-plugins
 ```
 {
     "require": {
-        "megumi/yahoo-feed": "*"
+        "megumi/wp-yahoo-feed": "*"
     }
 }
 ```
@@ -71,7 +71,7 @@ Then access to:
 Clone this project.
 
 ```
-$ git clone git@github.com:megumi-wp-composer/yahoo-feed.git
+$ git clone git@github.com:megumi-wp-composer/wp-yahoo-feed.git
 ```
 
 ### Run testing
@@ -100,4 +100,4 @@ $ phpunit
 
 ### Issue
 
-[https://github.com/megumi-wp-composer/yahoo-feed/issues](https://github.com/megumi-wp-composer/yahoo-feed/issues)
+[https://github.com/megumi-wp-composer/wp-yahoo-feed/issues](https://github.com/megumi-wp-composer/wp-yahoo-feed/issues)
