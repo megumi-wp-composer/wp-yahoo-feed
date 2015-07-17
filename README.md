@@ -40,7 +40,7 @@ $ composer install
 ```
 require_once dirname( __FILE__ ) . '/vendor/autoload.php';
 
-$yahoo_feed = new Yahoo_Feed( 'my-feed' );
+$yahoo_feed = new Megumi\WP\Yahoo_Feed( 'my-feed' );
 $yahoo_feed->register();
 ```
 
