@@ -21,6 +21,8 @@ class YahooFeed
 		add_filter( 'the_excerpt_rss', array( $this, 'the_excerpt_rss' ), 10, 2 );
 		add_filter( 'option_rss_use_excerpt', array( $this, 'option_rss_use_excerpt' ) );
 		add_filter( 'query_vars', array( $this, 'query_vars' ) );
+		add_filter( 'img_caption_shortcode', array( $this, 'img_caption_shortcode' ), 10, 3 );
+		add_filter( 'yahoo_feed_item_excerpt_' . $this->feed_name, array( $this, 'yahoo_feed_item_excerpt' ), 10, 1 );
 
 		add_action( 'yahoo_feed_item_' . $this->feed_name, array( $this, 'yahoo_feed_item' ) );
 		add_action( 'template_redirect', array( $this, 'template_redirect' ) );
@@ -41,6 +43,12 @@ class YahooFeed
 
 	public function do_feed()
 	{
+		/**
+		 * Filters feed template
+		 *
+		 * @since initial-release
+		 * @param string Path to the feed template.
+		 */
 		load_template( apply_filters( 'yahoo_feed_template_' . $this->feed_name, ABSPATH . WPINC . '/feed-rss2.php' ) );
 	}
 
@@ -57,6 +65,11 @@ class YahooFeed
 			return;
 		}
 
+		/**
+		 * Fires at item node in the feed.
+		 *
+		 * @since initial-release
+		 */
 		do_action( 'yahoo_feed_item_' . $this->feed_name, $this->feed_name );
 	}
 
@@ -75,7 +88,13 @@ class YahooFeed
 			return $title;
 		}
 
-		return mb_strimwidth( $title, 0, apply_filters( 'yahoo_feed_item_title_width_' . $this->feed_name, 28 ) );
+		/**
+		 * Filters width of item's title
+		 *
+		 * @since initial-release
+		 * @param string Path to the feed template.
+		 */
+		return mb_substr( $title, 0, apply_filters( 'yahoo_feed_item_title_width_' . $this->feed_name, 28 ), 'UTF-8' );
 	}
 
 	public function the_category_rss( $the_list, $type )
@@ -84,6 +103,12 @@ class YahooFeed
 			return $the_list;
 		}
 
+		/**
+		 * Filters category of the item
+		 *
+		 * @since initial-release
+		 * @param string $the_list <category> node of the item
+		 */
 		return apply_filters( 'yahoo_feed_item_category_' . $this->feed_name, $the_list );
 	}
 
@@ -95,9 +120,22 @@ class YahooFeed
 
 		if ( has_post_thumbnail( get_the_ID() ) ) {
 			$post_thumbnail_id = get_post_thumbnail_id( get_the_ID() );
+
+			/**
+			 * Filters the image size of post-thumbnail
+			 *
+			 * @since initial-release
+			 * @param string 'full' or 'large' or ...
+			 */
 			$attachment_image_src = wp_get_attachment_image_src( $post_thumbnail_id, apply_filters( 'yahoo_feed_item_enclosure_image_size_' . $this->feed_name, 'full' ), false );
 			$enclosure = $attachment_image_src[0];
 		} else {
+			/**
+			 * Filters the default post-thumbnail
+			 *
+			 * @since initial-release
+			 * @param string URL to the default post-thumbnail
+			 */
 			$enclosure = apply_filters( 'yahoo_feed_item_default_enclosure_' . $this->feed_name, '' );
 		}
 
@@ -110,24 +148,9 @@ class YahooFeed
 			return $excerpt;
 		}
 
-		$content = get_the_content();
-		$excerpt = wp_kses(
-			$content,
-			apply_filters( 'yahoo_feed_item_allowed_html_' . $this->feed_name, array(
-				'h2' => array(),
-				'p' => array(),
-				'blockquote' => array('style' => array()),
-				'img' => array(),
-				'img' => array('width' => array(), 'height' => array(), 'src' => array(), 'alt' => array()),
-				'strong' => array(),
-				'a' => array(
-			        'href' => array(),
-			        'title' => array()
-			    ),
-			) ),
-			array('http', 'https')
-		);
-		return apply_filters( 'yahoo_feed_item_excerpt_' . $this->feed_name, $excerpt, $content );
+		$content = apply_filters( 'the_content', get_the_content() );
+
+		return apply_filters( 'yahoo_feed_item_excerpt_' . $this->feed_name, $content );
 	}
 
 	public function option_rss_use_excerpt( $option )
@@ -143,6 +166,56 @@ class YahooFeed
 	{
 		$vars[] = "type";
 		return $vars;
+	}
+
+	public function img_caption_shortcode( $empty, $attr, $content )
+	{
+		if ( ! $this->is_yahoo_feed() ) {
+			return '';
+		}
+
+		$atts = shortcode_atts( array(
+			'width'	  => '',
+			'caption' => '',
+		), $attr, 'caption' );
+
+		$atts['width'] = (int) $atts['width'];
+		if ( $atts['width'] < 1 || empty( $atts['caption'] ) )
+			return $content;
+
+		$content = do_shortcode( $content );
+		if ( empty( $atts['caption'] ) ||  preg_match( "/<img.*caption=.*?>/i", $content ) ) {
+			return '<p>' . $content . '</p>'; // 最初からcaptionがある場合
+		} else {
+			return '<p>' . str_replace( "<img", '<img caption="' . esc_attr( $atts['caption'] ) . '"', $content ) . '</p>';
+		}
+	}
+
+	public function yahoo_feed_item_excerpt( $content )
+	{
+		$allowed_html = apply_filters( 'yahoo_feed_item_allowed_html_' . $this->feed_name, array(
+			'h2' => array(),
+			'p' => array(),
+			'blockquote' => array('style' => array()),
+			'img' => array(
+				'width' => array(),
+				'height' => array(),
+				'src' => array(),
+				'alt' => array(),
+				'caption' => array(),
+			),
+			'strong' => array(),
+			'a' => array(
+		        'href' => array(),
+		        'title' => array()
+		    ),
+		) );
+
+		return wp_kses(
+			$content,
+			$allowed_html,
+			array('http', 'https')
+		);
 	}
 
 	public function is_yahoo_feed()
