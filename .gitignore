@@ -1,7 +1,8 @@
 .grunt
+bin
 composer.phar
 node_modules
 npm-debug.log
 release
+tests
 vendor
-yahoo-feed.php
