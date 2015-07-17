@@ -1,4 +1,5 @@
 .grunt
+.travis.yml
 bin
 composer.phar
 node_modules
