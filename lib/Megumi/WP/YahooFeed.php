@@ -34,6 +34,17 @@ class YahooFeed
 	public function register()
 	{
 		add_action( 'init', array( $this, 'init') );
+		register_activation_hook( __FILE__, array( $this, 'register_activation_hook' ) );
+	}
+
+	public function register_activation_hook()
+	{
+		$this->init();
+		flush_rewrite_rules();
+	}
+
+	public function init()
+	{
 		add_action( 'rss2_item', array( $this, 'rss2_item' ) );
 		add_filter( 'the_guid', array( $this, 'guid') );
 		add_filter( 'the_title_rss', array( $this, 'the_title_rss') );
@@ -63,17 +74,6 @@ class YahooFeed
 			add_action( 'save_post', array( $this, 'save_post' ) );
 		}
 
-		register_activation_hook( __FILE__, array( $this, 'register_activation_hook' ) );
-	}
-
-	public function register_activation_hook()
-	{
-		$this->init();
-		flush_rewrite_rules();
-	}
-
-	public function init()
-	{
 		add_feed( $this->feed_name, array( $this, 'do_feed' ) );
 	}
 

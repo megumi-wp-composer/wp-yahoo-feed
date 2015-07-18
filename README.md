@@ -10,7 +10,7 @@ Helper class Generates the custom feed for Yahoo Japan for WordPress plugin.
 * Set post-thumbnail to `<enclosure />` and add it to `<item />`.
 * Add `caption` attribute to `<img />` in `<description />`;
 * Set post modified date to `<pubDate />`.
-* Set Yahoo category to `<category />`.
+* Add metabox for Yahoo's categories and set it to `<category />`.
 * Add trashed items to the feed.
 
 ## Installation

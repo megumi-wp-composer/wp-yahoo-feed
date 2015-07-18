@@ -125,7 +125,7 @@ class YahooFeed_Test extends WP_UnitTestCase
 		$this->go_to( '/feed/' . $this->my_custom_feed_url );
 
 		ob_start();
-		$this->yahoo->template_redirect();
+		$this->yahoo->do_feed();
 		$feed = ob_get_clean();
 		$xml = xml_to_array( $feed );
 
@@ -170,7 +170,7 @@ class YahooFeed_Test extends WP_UnitTestCase
 		$this->go_to( '/feed/' . $this->my_custom_feed_url );
 
 		ob_start();
-		$this->yahoo->template_redirect();
+		$this->yahoo->do_feed();
 		$feed = ob_get_clean();
 		$xml = xml_to_array( $feed );
 
@@ -178,8 +178,39 @@ class YahooFeed_Test extends WP_UnitTestCase
 		$this->assertSame( intval( get_option( 'posts_per_page' ) ) + 1, count( $items ), 'Feed should includes trashed items.' );
 
 		$categories = xml_find( $xml, 'rss', 'channel', 'item', 'category' );
-
 		$this->assertSame( "0", $categories[0]['content'] );
 		$this->assertSame( "3", $categories[1]['content'] );
+
+		$guids = xml_find( $xml, 'rss', 'channel', 'item', 'guid' );
+		$this->assertRegExp( '#^[0-9]+$#', $guids[0]['content'] );
+		$this->assertRegExp( '#^[0-9]+$#', $guids[1]['content'] );
+	}
+
+	/**
+	 * @test
+	 */
+	public function tests_on_default_feed()
+	{
+		foreach ( $this->post_ids as $post_id ) {
+			update_post_meta( $post_id, '_yahoo_feed_category_' . $this->my_custom_feed_url, 3 );
+		}
+
+		wp_delete_post( $this->post_ids[0] );
+
+		$this->go_to( '/feed/' );
+
+		ob_start();
+		$this->yahoo->do_feed();
+		$feed = ob_get_clean();
+		$xml = xml_to_array( $feed );
+
+		$items = xml_find( $xml, 'rss', 'channel', 'item' );
+		$this->assertSame( intval( get_option( 'posts_per_page' ) ), count( $items ), 'Feed should includes trashed items.' );
+
+		$categories = xml_find( $xml, 'rss', 'channel', 'item', 'category' );
+		$this->assertSame( 'Uncategorized', $categories[0]['content'] );
+
+		$guids = xml_find( $xml, 'rss', 'channel', 'item', 'guid' );
+		$this->assertRegExp( '#^http://#', $guids[0]['content'] );
 	}
 }
