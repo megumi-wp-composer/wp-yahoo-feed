@@ -19,6 +19,14 @@ class YahooFeed_Test extends WP_UnitTestCase
 
 		$this->post_ids = $this->factory->post->create_many( 25 );
 
+		foreach ( $this->post_ids as $pid ) {
+			$attachment_id = $this->factory->attachment->create_object( 'image.jpg', $pid, array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type' => 'attachment'
+			) );
+			set_post_thumbnail( $pid, $attachment_id );
+		}
+
 		// activate the plugin
 		$this->yahoo = new YahooFeed( $this->my_custom_feed_url );
 		$this->yahoo->register_activation_hook();
@@ -148,11 +156,10 @@ class YahooFeed_Test extends WP_UnitTestCase
 		$this->assertSame( intval( get_option( 'posts_per_page' ) ), count( $items ) );
 
 		$enclosures = xml_find( $xml, 'rss', 'channel', 'item', 'enclosure' );
-		$this->assertSame( intval( get_option( 'posts_per_page' ) ), count( $enclosures ) );
-
 		$guids = xml_find( $xml, 'rss', 'channel', 'item', 'guid' );
 		for ( $i = 0; $i < intval( get_option( 'posts_per_page' ) ); $i++ ) {
-			$this->assertTrue( 0 < intval( $guids[0]['content'] ), 'GUID should be numeric.' );
+			$this->assertRegExp( '#^http://#', $enclosures[ $i ]['content'] );
+			$this->assertRegExp( '#^[0-9]+$#', $guids[ $i ]['content'], 'GUID should be numeric.' );
 		}
 	}
 
@@ -212,5 +219,8 @@ class YahooFeed_Test extends WP_UnitTestCase
 
 		$guids = xml_find( $xml, 'rss', 'channel', 'item', 'guid' );
 		$this->assertRegExp( '#^http://#', $guids[0]['content'] );
+
+		$enclosures = xml_find( $xml, 'rss', 'channel', 'item', 'enclosure' );
+		$this->assertSame( 0, count( $enclosures ) );
 	}
 }

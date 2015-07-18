@@ -53,8 +53,8 @@ class YahooFeed
 		add_filter( 'option_rss_use_excerpt', array( $this, 'option_rss_use_excerpt' ) );
 		add_filter( 'query_vars', array( $this, 'query_vars' ) );
 		add_filter( 'img_caption_shortcode', array( $this, 'img_caption_shortcode' ), 10, 3 );
-		add_filter( 'yahoo_feed_item_excerpt_' . $this->feed_name, array( $this, 'yahoo_feed_item_excerpt' ), 10, 1 );
-		add_filter( 'yahoo_feed_item_category_' . $this->feed_name, array( $this, 'yahoo_feed_item_category' ), 10, 1 );
+		add_filter( 'yahoo_feed_item_excerpt_' . $this->feed_name, array( $this, 'yahoo_feed_item_excerpt' ) );
+		add_filter( 'yahoo_feed_item_category_' . $this->feed_name, array( $this, 'yahoo_feed_item_category' ) );
 		add_filter( 'get_post_time', array( $this, 'get_post_time' ) );
 
 		add_action( 'yahoo_feed_item_' . $this->feed_name, array( $this, 'yahoo_feed_item' ) );
