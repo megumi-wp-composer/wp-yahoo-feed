@@ -233,6 +233,10 @@ class YahooFeed
 
 	public function yahoo_feed_item_excerpt( $content )
 	{
+		if ( ! $this->is_yahoo_feed() ) {
+			return $content;
+		}
+
 		$allowed_html = $this->get_allowed_html();
 
 		return wp_kses(
@@ -244,6 +248,11 @@ class YahooFeed
 
 	public function yahoo_feed_item_category( $category_list )
 	{
+		if ( ! $this->is_yahoo_feed() ) {
+			var_dump($category_list);
+			return $category_list;
+		}
+
 		if ( get_post_meta( get_the_ID(), '_yahoo_feed_category_' . $this->feed_name, true ) ) {
 			return '<category>'.intval( get_post_meta( get_the_ID(), '_yahoo_feed_category_' . $this->feed_name, true ) ).'</category>';
 		} else {
@@ -301,6 +310,10 @@ class YahooFeed
 
 	public function rss2_head()
 	{
+		if ( ! $this->is_yahoo_feed() ) {
+			return;
+		}
+
 		global $post;
 
 		$posts = get_posts( array(
@@ -326,10 +339,10 @@ class YahooFeed
 		wp_reset_postdata();
 	}
 
-	public function get_post_time()
+	public function get_post_time( $post_time )
 	{
 		if ( ! $this->is_yahoo_feed() ) {
-			return '';
+			return $post_time;
 		}
 
 		$post = get_post( get_the_ID() );
