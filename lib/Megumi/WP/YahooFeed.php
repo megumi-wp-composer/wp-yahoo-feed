@@ -249,7 +249,6 @@ class YahooFeed
 	public function yahoo_feed_item_category( $category_list )
 	{
 		if ( ! $this->is_yahoo_feed() ) {
-			var_dump($category_list);
 			return $category_list;
 		}
 
