@@ -41,6 +41,10 @@ $ composer install
 require_once dirname( __FILE__ ) . '/vendor/autoload.php';
 
 $yahoo_feed = new Megumi\WP\Yahoo_Feed( 'my-feed' );
+$yahoo_feed->set_categories( array(
+    '0' => 'Empty Category',
+    '1' => 'Life Style'
+) );
 $yahoo_feed->register();
 ```
 

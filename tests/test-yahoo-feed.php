@@ -122,6 +122,32 @@ class YahooFeed_Test extends WP_UnitTestCase
 	 */
 	public function do_feed()
 	{
+		$this->go_to( '/feed/' . $this->my_custom_feed_url );
 
+		ob_start();
+		$this->yahoo->template_redirect();
+		$feed = ob_get_clean();
+		$xml = xml_to_array( $feed );
+
+		$channel = xml_find( $xml, 'rss', 'channel' );
+		$this->assertTrue( empty( $channel[0]['attributes'] ) );
+
+		$title = xml_find( $xml, 'rss', 'channel', 'title' );
+		$this->assertSame( get_option( 'blogname' ), $title[0]['content'] );
+
+		$desc = xml_find( $xml, 'rss', 'channel', 'description' );
+		$this->assertSame( get_option( 'blogdescription' ), $desc[0]['content'] );
+
+		$link = xml_find( $xml, 'rss', 'channel', 'link' );
+		$this->assertSame( get_option( 'siteurl' ), $link[0]['content'] );
+
+		$pubdate = xml_find( $xml, 'rss', 'channel', 'lastBuildDate' );
+		$this->assertSame( strtotime( get_lastpostmodified(  ) ), strtotime( $pubdate[0]['content'] ) );
+
+		$items = xml_find( $xml, 'rss', 'channel', 'item' );
+		$this->assertSame( intval( get_option( 'posts_per_page' ) ), count( $items ) );
+
+		$enclosures = xml_find( $xml, 'rss', 'channel', 'item', 'enclosure' );
+		$this->assertSame( intval( get_option( 'posts_per_page' ) ), count( $enclosures ) );
 	}
 }
