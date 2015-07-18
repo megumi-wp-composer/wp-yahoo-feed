@@ -9,7 +9,9 @@ Helper class Generates the custom feed for Yahoo Japan for WordPress plugin.
 * Filter the HTML of `<description />` that is allowed by Yahoo.
 * Set post-thumbnail to `<enclosure />` and add it to `<item />`.
 * Add `caption` attribute to `<img />` in `<description />`;
-
+* Set post modified date to `<pubDate />`.
+* Set Yahoo category to `<category />`.
+* Add trashed items to the feed.
 
 ## Installation
 
@@ -41,6 +43,10 @@ $ composer install
 require_once dirname( __FILE__ ) . '/vendor/autoload.php';
 
 $yahoo_feed = new Megumi\WP\Yahoo_Feed( 'my-feed' );
+$yahoo_feed->set_categories( array(
+    '0' => 'Empty Category',
+    '1' => 'Life Style'
+) );
 $yahoo_feed->register();
 ```
 
@@ -63,8 +69,6 @@ Then access to:
 ### Action Hooks
 
 * `yahoo_feed_item_{$feed_name}` - Fires at item node in the feed.
-
-### Action Hooks
 
 ## Contributing
 

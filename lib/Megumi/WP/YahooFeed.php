@@ -5,6 +5,24 @@ namespace Megumi\WP;
 class YahooFeed
 {
 	private $feed_name;
+	private $allowed_html = array(
+		'h2' => array(),
+		'p' => array(),
+		'blockquote' => array('style' => array()),
+		'img' => array(
+			'width' => array(),
+			'height' => array(),
+			'src' => array(),
+			'alt' => array(),
+			'caption' => array(),
+		),
+		'strong' => array(),
+		'a' => array(
+			'href' => array(),
+			'title' => array()
+		),
+	);
+	private $categories = array();
 
 	public function __construct( $feed_name )
 	{
@@ -23,9 +41,25 @@ class YahooFeed
 		add_filter( 'query_vars', array( $this, 'query_vars' ) );
 		add_filter( 'img_caption_shortcode', array( $this, 'img_caption_shortcode' ), 10, 3 );
 		add_filter( 'yahoo_feed_item_excerpt_' . $this->feed_name, array( $this, 'yahoo_feed_item_excerpt' ), 10, 1 );
+		add_filter( 'yahoo_feed_item_category_' . $this->feed_name, array( $this, 'yahoo_feed_item_category' ), 10, 1 );
+		add_filter( 'get_post_time', array( $this, 'get_post_time' ) );
 
 		add_action( 'yahoo_feed_item_' . $this->feed_name, array( $this, 'yahoo_feed_item' ) );
 		add_action( 'template_redirect', array( $this, 'template_redirect' ) );
+		add_action( 'rss2_head', array( $this, 'rss2_head' ), 9999 );
+
+		if ( $this->get_categories() ) {
+			add_action( 'add_meta_boxes', function(){
+				add_meta_box(
+					'yahoo_feed' . $this->feed_name,
+					'Yahoo Category',
+					array( $this, 'add_meta_boxes' ),
+					'post',
+					'side'
+				);
+			} );
+			add_action( 'save_post', array( $this, 'save_post' ) );
+		}
 
 		register_activation_hook( __FILE__, array( $this, 'register_activation_hook' ) );
 	}
@@ -199,35 +233,107 @@ class YahooFeed
 
 	public function yahoo_feed_item_excerpt( $content )
 	{
-		/**
-		 * Filters the allowed html
-		 *
-		 * @since initial-release
-		 * @param array Allowed htmls and attributes
-		 */
-		$allowed_html = apply_filters( 'yahoo_feed_item_allowed_html_' . $this->feed_name, array(
-			'h2' => array(),
-			'p' => array(),
-			'blockquote' => array('style' => array()),
-			'img' => array(
-				'width' => array(),
-				'height' => array(),
-				'src' => array(),
-				'alt' => array(),
-				'caption' => array(),
-			),
-			'strong' => array(),
-			'a' => array(
-		        'href' => array(),
-		        'title' => array()
-		    ),
-		) );
+		$allowed_html = $this->get_allowed_html();
 
 		return wp_kses(
 			$content,
 			$allowed_html,
 			array('http', 'https')
 		);
+	}
+
+	public function yahoo_feed_item_category( $category_list )
+	{
+		if ( get_post_meta( get_the_ID(), '_yahoo_feed_category_' . $this->feed_name, true ) ) {
+			return '<category>'.intval( get_post_meta( get_the_ID(), '_yahoo_feed_category_' . $this->feed_name, true ) ).'</category>';
+		} else {
+			return '';
+		}
+	}
+
+	public function add_meta_boxes( $post )
+	{
+			wp_nonce_field( 'yahoo_feed_category_' . $this->feed_name, 'yahoo_feed_category_nonce_' . $this->feed_name );
+			$value = get_post_meta( $post->ID, '_yahoo_feed_category_' . $this->feed_name, true );
+			if ( empty( $value ) ) {
+				$value = '0';
+			}
+
+			echo '<ul>';
+
+			foreach ( $this->get_categories() as $key => $cat ) {
+				printf(
+					'<li><label><input type="radio" name="%1$s" value="%2$s" %4$s /> %3$s</label></li>',
+					esc_attr('yahoo_feed_category_' . $this->feed_name),
+					esc_attr($key),
+					esc_html($cat),
+					( intval( $value ) === intval( $key ) ) ? 'checked="checked"' : ''
+				);
+			}
+
+			echo '</ul>';
+	}
+
+	public function save_post( $post_id )
+	{
+		if ( ! isset( $_POST['yahoo_feed_category_nonce_' . $this->feed_name] ) ) {
+			return;
+		}
+
+		if ( ! wp_verify_nonce( $_POST['yahoo_feed_category_nonce_' . $this->feed_name], 'yahoo_feed_category_' . $this->feed_name ) ) {
+			return;
+		}
+
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		if ( ! isset( $_POST['yahoo_feed_category_' . $this->feed_name] ) ) {
+			return;
+		}
+
+		update_post_meta( $post_id, '_yahoo_feed_category_' . $this->feed_name, intval( $_POST['yahoo_feed_category_' . $this->feed_name] ) );
+	}
+
+	public function rss2_head()
+	{
+		global $post;
+
+		$posts = get_posts( array(
+			'post_type' => 'post',
+			'post_status' => array( 'trash', 'private' ),
+			'posts_per_page' => 10,
+			'orderby' => 'modified',
+			'order' => 'DESC',
+		) );
+
+		foreach ( $posts as $post ) {
+			setup_postdata( $post );
+		?>
+			<item>
+				<title><?php the_title_rss() ?></title>
+				<category>0</category>
+				<pubDate><?php echo mysql2date('D, d M Y H:i:s +0000', get_post_time('Y-m-d H:i:s', true), false); ?></pubDate>
+				<guid isPermaLink="false"><?php the_guid(); ?></guid>
+			</item>
+		<?php
+		}
+
+		wp_reset_postdata();
+	}
+
+	public function get_post_time()
+	{
+		if ( ! $this->is_yahoo_feed() ) {
+			return '';
+		}
+
+		$post = get_post( get_the_ID() );
+		return $post->post_modified_gmt;
 	}
 
 	public function is_yahoo_feed()
@@ -237,5 +343,26 @@ class YahooFeed
 		} else {
 			return is_feed( $this->feed_name );
 		}
+	}
+
+	public function set_categories( $categories )
+	{
+		$this->categories = $categories;
+	}
+
+	public function get_categories()
+	{
+		return $this->categories;
+	}
+
+	private function get_allowed_html()
+	{
+		/**
+		 * Filters the allowed html
+		 *
+		 * @since initial-release
+		 * @param array Allowed htmls and attributes
+		 */
+		return apply_filters( 'yahoo_feed_item_allowed_html_' . $this->feed_name, $this->allowed_html );
 	}
 }
