@@ -5,6 +5,7 @@ namespace Megumi\WP;
 class YahooFeed
 {
 	private $feed_name;
+
 	private $allowed_html = array(
 		'h2' => array(),
 		'p' => array(),
@@ -22,6 +23,7 @@ class YahooFeed
 			'title' => array()
 		),
 	);
+
 	private $categories = array();
 
 	public function __construct( $feed_name )
