@@ -5,6 +5,7 @@ namespace Megumi\WP;
 class YahooFeed
 {
 	private $feed_name;
+
 	private $allowed_html = array(
 		'h2' => array(),
 		'p' => array(),
@@ -22,6 +23,7 @@ class YahooFeed
 			'title' => array()
 		),
 	);
+
 	private $categories = array();
 
 	public function __construct( $feed_name )
@@ -32,6 +34,17 @@ class YahooFeed
 	public function register()
 	{
 		add_action( 'init', array( $this, 'init') );
+		register_activation_hook( __FILE__, array( $this, 'register_activation_hook' ) );
+	}
+
+	public function register_activation_hook()
+	{
+		$this->init();
+		flush_rewrite_rules();
+	}
+
+	public function init()
+	{
 		add_action( 'rss2_item', array( $this, 'rss2_item' ) );
 		add_filter( 'the_guid', array( $this, 'guid') );
 		add_filter( 'the_title_rss', array( $this, 'the_title_rss') );
@@ -40,8 +53,8 @@ class YahooFeed
 		add_filter( 'option_rss_use_excerpt', array( $this, 'option_rss_use_excerpt' ) );
 		add_filter( 'query_vars', array( $this, 'query_vars' ) );
 		add_filter( 'img_caption_shortcode', array( $this, 'img_caption_shortcode' ), 10, 3 );
-		add_filter( 'yahoo_feed_item_excerpt_' . $this->feed_name, array( $this, 'yahoo_feed_item_excerpt' ), 10, 1 );
-		add_filter( 'yahoo_feed_item_category_' . $this->feed_name, array( $this, 'yahoo_feed_item_category' ), 10, 1 );
+		add_filter( 'yahoo_feed_item_excerpt_' . $this->feed_name, array( $this, 'yahoo_feed_item_excerpt' ) );
+		add_filter( 'yahoo_feed_item_category_' . $this->feed_name, array( $this, 'yahoo_feed_item_category' ) );
 		add_filter( 'get_post_time', array( $this, 'get_post_time' ) );
 
 		add_action( 'yahoo_feed_item_' . $this->feed_name, array( $this, 'yahoo_feed_item' ) );
@@ -61,17 +74,6 @@ class YahooFeed
 			add_action( 'save_post', array( $this, 'save_post' ) );
 		}
 
-		register_activation_hook( __FILE__, array( $this, 'register_activation_hook' ) );
-	}
-
-	public function register_activation_hook()
-	{
-		$this->init();
-		flush_rewrite_rules();
-	}
-
-	public function init()
-	{
 		add_feed( $this->feed_name, array( $this, 'do_feed' ) );
 	}
 
