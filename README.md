@@ -70,8 +70,6 @@ Then access to:
 
 * `yahoo_feed_item_{$feed_name}` - Fires at item node in the feed.
 
-### Action Hooks
-
 ## Contributing
 
 Clone this project.
