@@ -17,7 +17,7 @@ class YahooFeed_Test extends WP_UnitTestCase
 		$GLOBALS['wp_rewrite']->init();
 		flush_rewrite_rules();
 
-		$this->factory->post->create_many( 25 );
+		$this->post_ids = $this->factory->post->create_many( 25 );
 
 		// activate the plugin
 		$this->yahoo = new YahooFeed( $this->my_custom_feed_url );
@@ -149,5 +149,37 @@ class YahooFeed_Test extends WP_UnitTestCase
 
 		$enclosures = xml_find( $xml, 'rss', 'channel', 'item', 'enclosure' );
 		$this->assertSame( intval( get_option( 'posts_per_page' ) ), count( $enclosures ) );
+
+		$guids = xml_find( $xml, 'rss', 'channel', 'item', 'guid' );
+		for ( $i = 0; $i < intval( get_option( 'posts_per_page' ) ); $i++ ) {
+			$this->assertTrue( 0 < intval( $guids[0]['content'] ), 'GUID should be numeric.' );
+		}
+	}
+
+	/**
+	 * @test
+	 */
+	public function deleted_post_feed()
+	{
+		foreach ( $this->post_ids as $post_id ) {
+			update_post_meta( $post_id, '_yahoo_feed_category_' . $this->my_custom_feed_url, 3 );
+		}
+
+		wp_delete_post( $this->post_ids[0] );
+
+		$this->go_to( '/feed/' . $this->my_custom_feed_url );
+
+		ob_start();
+		$this->yahoo->template_redirect();
+		$feed = ob_get_clean();
+		$xml = xml_to_array( $feed );
+
+		$items = xml_find( $xml, 'rss', 'channel', 'item' );
+		$this->assertSame( intval( get_option( 'posts_per_page' ) ) + 1, count( $items ), 'Feed should includes trashed items.' );
+
+		$categories = xml_find( $xml, 'rss', 'channel', 'item', 'category' );
+
+		$this->assertSame( "0", $categories[0]['content'] );
+		$this->assertSame( "3", $categories[1]['content'] );
 	}
 }

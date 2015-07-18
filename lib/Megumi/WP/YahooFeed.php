@@ -42,9 +42,11 @@ class YahooFeed
 		add_filter( 'img_caption_shortcode', array( $this, 'img_caption_shortcode' ), 10, 3 );
 		add_filter( 'yahoo_feed_item_excerpt_' . $this->feed_name, array( $this, 'yahoo_feed_item_excerpt' ), 10, 1 );
 		add_filter( 'yahoo_feed_item_category_' . $this->feed_name, array( $this, 'yahoo_feed_item_category' ), 10, 1 );
+		add_filter( 'get_post_time', array( $this, 'get_post_time' ) );
 
 		add_action( 'yahoo_feed_item_' . $this->feed_name, array( $this, 'yahoo_feed_item' ) );
 		add_action( 'template_redirect', array( $this, 'template_redirect' ) );
+		add_action( 'rss2_head', array( $this, 'rss2_head' ), 9999 );
 
 		if ( $this->get_categories() ) {
 			add_action( 'add_meta_boxes', function(){
@@ -242,7 +244,11 @@ class YahooFeed
 
 	public function yahoo_feed_item_category( $category_list )
 	{
-		return '<category>'.intval( get_post_meta( get_the_ID(), '_yahoo_feed_category_' . $this->feed_name, true ) ).'</category>';
+		if ( get_post_meta( get_the_ID(), '_yahoo_feed_category_' . $this->feed_name, true ) ) {
+			return '<category>'.intval( get_post_meta( get_the_ID(), '_yahoo_feed_category_' . $this->feed_name, true ) ).'</category>';
+		} else {
+			return '';
+		}
 	}
 
 	public function add_meta_boxes( $post )
@@ -291,6 +297,43 @@ class YahooFeed
 		}
 
 		update_post_meta( $post_id, '_yahoo_feed_category_' . $this->feed_name, intval( $_POST['yahoo_feed_category_' . $this->feed_name] ) );
+	}
+
+	public function rss2_head()
+	{
+		global $post;
+
+		$posts = get_posts( array(
+			'post_type' => 'post',
+			'post_status' => array( 'trash', 'private' ),
+			'posts_per_page' => 10,
+			'orderby' => 'modified',
+			'order' => 'DESC',
+		) );
+
+		foreach ( $posts as $post ) {
+			setup_postdata( $post );
+		?>
+			<item>
+				<title><?php the_title_rss() ?></title>
+				<category>0</category>
+				<pubDate><?php echo mysql2date('D, d M Y H:i:s +0000', get_post_time('Y-m-d H:i:s', true), false); ?></pubDate>
+				<guid isPermaLink="false"><?php the_guid(); ?></guid>
+			</item>
+		<?php
+		}
+
+		wp_reset_postdata();
+	}
+
+	public function get_post_time()
+	{
+		if ( ! $this->is_yahoo_feed() ) {
+			return '';
+		}
+
+		$post = get_post( get_the_ID() );
+		return $post->post_modified_gmt;
 	}
 
 	public function is_yahoo_feed()
